@@ -1,0 +1,8 @@
+# On-Call's product pages live on tenantkeep.app. These addresses are in the App Store listing,
+# in shipped builds and in other people's bookmarks, so they keep answering.
+/how-it-works https://tenantkeep.app/on-call/how-it-works/ 301
+/how-it-works/* https://tenantkeep.app/on-call/how-it-works/ 301
+/pricing https://tenantkeep.app/on-call/pricing/ 301
+/pricing/* https://tenantkeep.app/on-call/pricing/ 301
+/glossary https://tenantkeep.app/on-call/glossary/ 301
+/glossary/* https://tenantkeep.app/on-call/glossary/ 301
