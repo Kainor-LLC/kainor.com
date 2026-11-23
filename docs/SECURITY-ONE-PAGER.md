@@ -15,11 +15,19 @@ database of your devices, and no Kainor server between the administrator and the
 
 - **Delegated authentication only**, via Microsoft's MSAL library and your tenant's normal
   sign-in, including Conditional Access, MFA and PIM. The app has no permissions of its own.
+- **A sign-in that cannot write.** The app signs in through an Entra app registration that
+  holds read permissions only. Each kind of change (role activation, device actions, user
+  actions, account recovery, group membership) goes through its own registration, which
+  your organization approves separately or never approves, and which the app signs in to
+  only when an administrator turns that feature on. Entra puts every permission granted to
+  an app into its tokens, so this is what makes "read-only" a fact about the sign-in and not
+  a promise about the code. The registrations and their permissions are listed in
+  `docs/app-registrations.json`.
 - **Least-privilege by default.** Read-only Graph scopes at sign-in; the credential-read
-  scope is requested at the first reveal; the one write scope (BitLocker key rotation) is
-  requested only if the administrator turns rotation on in Settings. The same opt-in rule
-  covers role activation and reading user display names (`User.ReadBasic.All`): off by
-  default, requested at the moment the toggle is turned on, never at sign-in.
+  scope is requested at the first reveal; nothing that writes is requested until its switch
+  is turned on in Settings. The same opt-in rule covers reading user display names
+  (`User.ReadBasic.All`): off by default, requested at the moment the toggle is turned on,
+  never at sign-in.
 - **Your audit log, not ours.** Every credential read is a Graph call by the signed-in user
   and appears in your Entra audit log exactly as a read from the admin center would.
 - **Face ID or Touch ID gates every reveal**, and the gate runs *before* the Graph call, so
@@ -52,6 +60,15 @@ of a paying organization is its tenant ID, tier, term and order reference, no na
 email addresses. Our server does not log tenant IDs. Full specification:
 `docs/ENTITLEMENT-API.md`.
 
+For an **organization that turns on Instant alerts** (Pro, off by default): a Kainor service,
+signed in as a separate application, TenantKeep Watch, that the organization approves in Entra ID,
+reads the sign-ins of the break-glass accounts it names, Conditional Access audit entries and
+security incidents, with read-only application permissions and no write permission or access to
+credentials. It keeps identifiers only (tenant, account and administrator object IDs, each phone's
+push token and public key), never what it reads, and encrypts each alert for one phone. Removing
+TenantKeep Watch stops it at once and deletes what it holds within a day. Full specification:
+`docs/INSTANT-ALERTS.md`.
+
 **No analytics, telemetry or crash reporting of any kind**, on any tier. Diagnostics exist,
 but are assembled on the device only when the administrator asks, are shown in full before
 sending, and are structurally incapable of containing a credential, device name or user name.
@@ -77,7 +94,9 @@ attested by a third party.
 1. Install a TLS-intercepting proxy on a test iPhone and trust its certificate.
 2. Sign in to a test tenant and reveal a credential.
 3. Observe two hosts, both Microsoft. Search the capture for the credential: it appears once,
-   in a Graph response.
+   in a Graph response. Open the Security module's Digest tab and four public feed hosts
+   appear, `www.cisa.gov`, `api.msrc.microsoft.com`, `isc.sans.edu` and
+   `www.bleepingcomputer.com`, each a GET with no token and no cookie.
 
 Ten minutes. Step-by-step in `docs/NETWORK-TRANSPARENCY.md`. Vulnerability reports:
 `SECURITY.md`. Source, published for security review: github.com/Kainor-LLC/LAPSlock.
